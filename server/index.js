@@ -5,19 +5,32 @@ import userRouter from "./routers/user-router.js";
 import postRouter from "./routers/post-router.js";
 import cors from "cors";
 
-const app = express();
 dotenv.config();
 
+const app = express();
 app.use(cors());
 app.use(express.json());
+
 app.use("/user", userRouter);
 app.use("/posts", postRouter);
 
-mongoose
-  .connect(process.env.MONGO_URL)
-  .then(() =>
-    app.listen(5000, () =>
-      console.log("Server is running on http://localhost:5000")
-    )
-  )
-  .catch((err) => console.log(err));
+let isConnected = false;
+
+async function connectDB() {
+  if (isConnected) return;
+  try {
+    await mongoose.connect(process.env.MONGO_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    isConnected = true;
+    console.log("MongoDB Connected");
+  } catch (error) {
+    console.error("MongoDB Connection Error:", error);
+  }
+}
+
+export default async function handler(req, res) {
+  await connectDB();
+  return app(req, res);
+}
