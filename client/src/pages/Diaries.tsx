@@ -10,7 +10,7 @@ const Diaries: React.FC = () => {
     getAllPosts()
       .then((data) => {
         if (data) {
-          setPosts(data);
+          setPosts(data.posts);
         } else {
           console.error("No data received from getAllPosts");
         }

@@ -32,9 +32,13 @@ export interface UserResponse {
   posts: PostResponse[];
 }
 
-export const getAllPosts = async (): Promise<PostResponse[] | void> => {
+export const getAllPosts = async (): Promise<{
+  posts: PostResponse[];
+} | void> => {
   try {
-    const res: AxiosResponse<PostResponse[]> = await api.get("/posts");
+    const res: AxiosResponse<{ posts: PostResponse[] }> = await api.get(
+      "/posts"
+    );
     if (res.status !== 200) {
       return console.log("**Some Error Occurred**");
     }
@@ -139,7 +143,9 @@ export const postDelete = async (id: string): Promise<any> => {
   }
 };
 
-export const getUserDetails = async (): Promise<UserResponse | void> => {
+export const getUserDetails = async (): Promise<{
+  user: UserResponse;
+} | void> => {
   const id = localStorage.getItem("userId");
   if (!id) {
     return console.log("**User ID not found in localStorage**");

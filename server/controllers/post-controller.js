@@ -127,20 +127,35 @@ export const updatePost = async (req, res) => {
 export const deletePost = async (req, res) => {
   const id = req.params.id;
   let post;
-  try {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    post = await Post.findById(id).populate("user");
-    post.user.posts.pull(post);
-    await post.user.save({ session });
-    post = await Post.findByIdAndRemove(id);
-    session.commitTransaction();
-  } catch (err) {
-    return console.log(err);
-  }
-  if (!post) {
-    return res.status(500).json({ message: "Unable to delete" });
-  }
+  const MAX_RETRIES = 3;
+  let attempts = 0;
+  while (attempts < MAX_RETRIES) {
+    try {
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      post = await Post.findById(id).populate("user");
 
-  return res.status(200).json({ message: "Deleted Successfully" });
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      post.user.posts.pull(post);
+      await post.user.save({ session });
+      post = await Post.findByIdAndDelete(id);
+      await session.commitTransaction();
+      session.endSession();
+      return res.status(200).json({ message: "Deleted Successfully" });
+    } catch (err) {
+      attempts += 1;
+      console.log(`Attempt ${attempts} failed:`, err);
+
+      if (attempts >= MAX_RETRIES) {
+        return res
+          .status(500)
+          .json({ message: "Unable to delete after retries" });
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
 };

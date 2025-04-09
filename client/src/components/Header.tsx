@@ -1,45 +1,59 @@
+import React, { useState } from "react";
 import { AppBar, Tab, Tabs, Toolbar } from "@mui/material";
-import TravelExploreIcon from "@mui/icons-material/TravelExplore";
-import { useState } from "react";
+import ModeOfTravelIcon from "@mui/icons-material/ModeOfTravel";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 
-const links = [
-  { label: "Home", href: "/" },
-  { label: "Diaries", href: "/diaries" },
-  { label: "Auth", href: "/auth" },
-];
+const links = ["home", "diaries", "auth"];
+const loggedInLinks = ["home", "diaries", "add", "profile"];
 
-const Header = () => {
-  const [value, setValue] = useState(0);
+const Header: React.FC = () => {
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+
+  const [value, setValue] = useState<number>(0);
 
   return (
-    <AppBar
-      position="sticky"
-      sx={{
-        bgcolor: "transparent",
-      }}
-    >
+    <AppBar sx={{ bgcolor: "transparent", position: "sticky" }}>
       <Toolbar>
-        <TravelExploreIcon sx={{ color: "black" }} />
+        <ModeOfTravelIcon sx={{ color: "black" }} />
+
         <Tabs
           value={value}
-          onChange={(e, v) => setValue(v)}
+          onChange={(e, val) => setValue(val)}
           sx={{ ml: "auto", textDecoration: "none" }}
         >
-          {links.map((link) => (
-            <Tab
-              component={Link}
-              to={link.href}
-              sx={{
-                textDecoration: "none",
-                "&:hover": {
-                  bgcolor: "#f5f5f5",
-                },
-              }}
-              key={link.label}
-              label={link.label}
-            />
-          ))}
+          {isLoggedIn
+            ? loggedInLinks.map((link) => (
+                <Tab
+                  component={Link}
+                  to={`/${link === "home" ? "" : link}`}
+                  sx={{
+                    textDecoration: "none",
+                    ":hover": {
+                      textDecoration: "underline",
+                      textUnderlineOffset: "18px",
+                    },
+                  }}
+                  key={link}
+                  label={link}
+                />
+              ))
+            : links.map((link) => (
+                <Tab
+                  component={Link}
+                  to={`/${link === "home" ? "" : link}`}
+                  sx={{
+                    textDecoration: "none",
+                    ":hover": {
+                      textDecoration: "underline",
+                      textUnderlineOffset: "18px",
+                    },
+                  }}
+                  key={link}
+                  label={link}
+                />
+              ))}
         </Tabs>
       </Toolbar>
     </AppBar>
